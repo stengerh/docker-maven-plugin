@@ -9,7 +9,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>dmp-multi-assembly</artifactId>
+  <artifactId>dmp-it-multi-assembly</artifactId>
   <version>0.45-SNAPSHOT</version>
   <packaging>jar</packaging>
 
