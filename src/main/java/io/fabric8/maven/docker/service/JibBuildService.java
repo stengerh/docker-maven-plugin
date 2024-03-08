@@ -70,7 +70,7 @@ public class JibBuildService {
                         .getUpdatedEntriesAndRefresh().stream()
                         .collect(Collectors.toMap(AssemblyFiles.Entry::getDestFile, Function.identity(), (oldV, newV) -> newV));
                 JibServiceUtil.copyToContainer(
-                        containerBuilder, assemblyFiles.getAssemblyDirectory(), assemblyConfiguration.getTargetDir(), files);
+                        containerBuilder, assemblyConfiguration.getName(), assemblyFiles.getAssemblyDirectory(), assemblyConfiguration.getTargetDir(), files);
             }
 
             JibServiceUtil.buildContainer(containerBuilder,

@@ -260,12 +260,13 @@ public class JibServiceUtil {
     }
 
     public static void copyToContainer(
-            JibContainerBuilder containerBuilder, File directory, String targetDir, Map<File, AssemblyFiles.Entry> files)
+            JibContainerBuilder containerBuilder, String layerName, File directory, String targetDir, Map<File, AssemblyFiles.Entry> files)
             throws IOException {
 
         Path sourceDirPath = directory.toPath();
         AbsoluteUnixPath targetDirPath = AbsoluteUnixPath.get(targetDir);
-        FileEntriesLayer.Builder layerBuilder = FileEntriesLayer.builder();
+        FileEntriesLayer.Builder layerBuilder = FileEntriesLayer.builder()
+                .setName(layerName);
         Files.walkFileTree(sourceDirPath, new FileVisitor<Path>() {
             boolean notParentDir = false;
 

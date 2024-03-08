@@ -81,7 +81,7 @@ class JibServiceUtilTest {
         String targetDir = "/container-path";
 
         // When
-        JibServiceUtil.copyToContainer(containerBuilder, temporaryDirectory.toFile(), targetDir, Collections.emptyMap());
+        JibServiceUtil.copyToContainer(containerBuilder, "test-layer", temporaryDirectory.toFile(), targetDir, Collections.emptyMap());
 
         // Then
         ArgumentCaptor<FileEntriesLayer> fileEntriesLayerCaptor = ArgumentCaptor.forClass(FileEntriesLayer.class);
