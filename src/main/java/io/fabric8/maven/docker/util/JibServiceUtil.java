@@ -265,6 +265,7 @@ public class JibServiceUtil {
 
         Path sourceDirPath = directory.toPath();
         AbsoluteUnixPath targetDirPath = AbsoluteUnixPath.get(targetDir);
+        FileEntriesLayer.Builder layerBuilder = FileEntriesLayer.builder();
         Files.walkFileTree(sourceDirPath, new FileVisitor<Path>() {
             boolean notParentDir = false;
 
@@ -279,9 +280,7 @@ public class JibServiceUtil {
                 Path absolutePath = dir.toAbsolutePath();
                 Path relativePath = sourceDirPath.relativize(absolutePath);
                 AbsoluteUnixPath pathInContainer = targetDirPath.resolve(relativePath);
-                containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
-                        .addEntryRecursive(dir, pathInContainer)
-                        .build());
+                layerBuilder.addEntryRecursive(dir, pathInContainer);
                 return FileVisitResult.SKIP_SUBTREE;
             }
 
@@ -290,9 +289,7 @@ public class JibServiceUtil {
                 Path absolutePath = file.toAbsolutePath();
                 Path relativePath = sourceDirPath.relativize(absolutePath);
                 AbsoluteUnixPath pathInContainer = targetDirPath.resolve(relativePath);
-                containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
-                        .addEntryRecursive(file, pathInContainer/*, filePermissionsProvider*/)
-                        .build());
+                layerBuilder.addEntryRecursive(file, pathInContainer/*, filePermissionsProvider*/);
                 return FileVisitResult.CONTINUE;
             }
 
@@ -312,6 +309,8 @@ public class JibServiceUtil {
                 return FileVisitResult.CONTINUE;
             }
         });
+
+        containerBuilder.addFileEntriesLayer(layerBuilder.build());
     }
 
     /**
