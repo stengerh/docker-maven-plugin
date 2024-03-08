@@ -20,7 +20,6 @@ import io.fabric8.maven.docker.assembly.AssemblyFiles;
 import io.fabric8.maven.docker.config.Arguments;
 import io.fabric8.maven.docker.config.BuildImageConfiguration;
 import io.fabric8.maven.docker.config.ImageConfiguration;
-import io.fabric8.maven.docker.model.Image;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -264,7 +263,9 @@ public class JibServiceUtil {
             JibContainerBuilder containerBuilder, File directory, String targetDir, Map<File, AssemblyFiles.Entry> files)
             throws IOException {
 
-        Files.walkFileTree(directory.toPath(), new FileVisitor<Path>() {
+        Path sourceDirPath = directory.toPath();
+        AbsoluteUnixPath targetDirPath = AbsoluteUnixPath.get(targetDir);
+        Files.walkFileTree(sourceDirPath, new FileVisitor<Path>() {
             boolean notParentDir = false;
 
             @Override
@@ -275,22 +276,22 @@ public class JibServiceUtil {
                     return FileVisitResult.CONTINUE;
                 }
 
-                String fileFullpath = dir.toAbsolutePath().toString();
-                String relativePath = fileFullpath.substring(targetDir.length());
-                AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
+                Path absolutePath = dir.toAbsolutePath();
+                Path relativePath = sourceDirPath.relativize(absolutePath);
+                AbsoluteUnixPath pathInContainer = targetDirPath.resolve(relativePath);
                 containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
-                        .addEntryRecursive(dir, absoluteUnixPath)
+                        .addEntryRecursive(dir, pathInContainer)
                         .build());
                 return FileVisitResult.SKIP_SUBTREE;
             }
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                String fileFullpath = file.toAbsolutePath().toString();
-                String relativePath = fileFullpath.substring(targetDir.length());
-                AbsoluteUnixPath absoluteUnixPath = AbsoluteUnixPath.fromPath(Paths.get(relativePath));
+                Path absolutePath = file.toAbsolutePath();
+                Path relativePath = sourceDirPath.relativize(absolutePath);
+                AbsoluteUnixPath pathInContainer = targetDirPath.resolve(relativePath);
                 containerBuilder.addFileEntriesLayer(FileEntriesLayer.builder()
-                        .addEntryRecursive(file, absoluteUnixPath/*, filePermissionsProvider*/)
+                        .addEntryRecursive(file, pathInContainer/*, filePermissionsProvider*/)
                         .build());
                 return FileVisitResult.CONTINUE;
             }

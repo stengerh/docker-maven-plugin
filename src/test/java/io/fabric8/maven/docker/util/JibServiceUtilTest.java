@@ -21,9 +21,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,16 +74,16 @@ class JibServiceUtilTest {
     @EnabledOnOs({ LINUX, MAC })
     void testCopyToContainer(@Mock JibContainerBuilder containerBuilder) throws IOException {
         // Given
-        File temporaryDirectory = Files.createTempDirectory("jib-test").toFile();
-        File temporaryFile = new File(temporaryDirectory, "foo.txt");
-        boolean wasNewFileCreated = temporaryFile.createNewFile();
-        String tmpRoot = temporaryDirectory.getParent();
+        Path relativePath = Paths.get("foo.txt");
+        Path temporaryDirectory = Files.createTempDirectory("jib-test");
+        Path temporaryFile = temporaryDirectory.resolve(relativePath);
+        Files.createFile(temporaryFile);
+        String targetDir = "/container-path";
 
         // When
-        JibServiceUtil.copyToContainer(containerBuilder, temporaryDirectory, tmpRoot, Collections.emptyMap());
+        JibServiceUtil.copyToContainer(containerBuilder, temporaryDirectory.toFile(), targetDir, Collections.emptyMap());
 
         // Then
-        Assertions.assertTrue(wasNewFileCreated);
         ArgumentCaptor<FileEntriesLayer> fileEntriesLayerCaptor = ArgumentCaptor.forClass(FileEntriesLayer.class);
 
         Mockito.verify(containerBuilder).addFileEntriesLayer(fileEntriesLayerCaptor.capture());
@@ -91,8 +91,8 @@ class JibServiceUtilTest {
 
         Assertions.assertNotNull(fileEntriesLayer);
         Assertions.assertEquals(1, fileEntriesLayer.getEntries().size());
-        Assertions.assertEquals(temporaryFile.toPath(), fileEntriesLayer.getEntries().get(0).getSourceFile());
-        Assertions.assertEquals(AbsoluteUnixPath.fromPath(Paths.get(temporaryFile.getAbsolutePath().substring(tmpRoot.length()))),
+        Assertions.assertEquals(temporaryFile, fileEntriesLayer.getEntries().get(0).getSourceFile());
+        Assertions.assertEquals(AbsoluteUnixPath.fromPath(Paths.get(targetDir).resolve(relativePath)),
                 fileEntriesLayer.getEntries().get(0).getExtractionPath());
     }
 
