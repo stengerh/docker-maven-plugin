@@ -70,6 +70,18 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <version>${project.version}</version>
@@ -121,18 +133,6 @@
                 </exec>
               </tasks>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${spring.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
