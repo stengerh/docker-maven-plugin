@@ -37,6 +37,7 @@
     <module>helloworld</module>
     <module>log</module>
     <module>multi-assembly</module>
+    <module>multi-assembly-with-jib</module>
     <module>net</module>
     <module>platform-run</module>
     <module>properties</module>
