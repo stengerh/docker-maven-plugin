@@ -109,14 +109,14 @@
             <goals>
               <goal>build</goal>
             </goals>
-            <phase>install</phase>
+            <phase>package</phase>
           </execution>
           <execution>
             <id>load</id>
             <goals>
               <goal>build</goal>
             </goals>
-            <phase>install</phase>
+            <phase>package</phase>
             <configuration>
               <jib>false</jib>
               <images>
@@ -127,6 +127,26 @@
                   </build>
                 </image>
               </images>
+            </configuration>
+          </execution>
+          <execution>
+            <id>start</id>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <jib>false</jib>
+            </configuration>
+          </execution>
+          <execution>
+            <id>stop</id>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+            <phase>post-integration-test</phase>
+            <configuration>
+              <jib>false</jib>
             </configuration>
           </execution>
         </executions>
