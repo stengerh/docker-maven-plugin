@@ -111,27 +111,22 @@
             </goals>
             <phase>install</phase>
           </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
           <execution>
-            <id>generateSources</id>
+            <id>load</id>
             <goals>
-              <goal>run</goal>
+              <goal>build</goal>
             </goals>
             <phase>install</phase>
             <configuration>
-              <tasks>
-                <exec executable="docker" failonerror="true">
-                  <arg value="load"></arg>
-                  <arg value="-i"></arg>
-                  <arg value="./target/docker/fabric8/spring-boot-dmp-it-jib/tmp/docker-build.tar"></arg>
-                </exec>
-              </tasks>
+              <jib>false</jib>
+              <images>
+                <image>
+                  <name>${docker.user}/spring-boot-dmp-it-jib</name>
+                  <build>
+                    <dockerArchive>${project.build.directory}/docker/fabric8/spring-boot-dmp-it-jib/tmp/docker-build.tar</dockerArchive>
+                  </build>
+                </image>
+              </images>
             </configuration>
           </execution>
         </executions>
