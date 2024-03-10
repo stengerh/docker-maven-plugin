@@ -24,12 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
@@ -263,54 +260,15 @@ public class JibServiceUtil {
             JibContainerBuilder containerBuilder, String layerName, File directory, String targetDir, Map<File, AssemblyFiles.Entry> files)
             throws IOException {
 
-        Path sourceDirPath = directory.toPath();
         AbsoluteUnixPath targetDirPath = AbsoluteUnixPath.get(targetDir);
         FileEntriesLayer.Builder layerBuilder = FileEntriesLayer.builder()
                 .setName(layerName);
-        Files.walkFileTree(sourceDirPath, new FileVisitor<Path>() {
-            boolean notParentDir = false;
-
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-
-                if (!notParentDir) {
-                    notParentDir = true;
-                    return FileVisitResult.CONTINUE;
-                }
-
-                Path absolutePath = dir.toAbsolutePath();
-                Path relativePath = sourceDirPath.relativize(absolutePath);
-                AbsoluteUnixPath pathInContainer = targetDirPath.resolve(relativePath);
-                layerBuilder.addEntryRecursive(dir, pathInContainer);
-                return FileVisitResult.SKIP_SUBTREE;
+        try (Stream<Path> fileStream = Files.list(directory.toPath())) {
+            for (Path file : fileStream.collect(Collectors.toList())) {
+                AbsoluteUnixPath pathInContainer = targetDirPath.resolve(file.getFileName());
+                layerBuilder.addEntryRecursive(file, pathInContainer);
             }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Path absolutePath = file.toAbsolutePath();
-                Path relativePath = sourceDirPath.relativize(absolutePath);
-                AbsoluteUnixPath pathInContainer = targetDirPath.resolve(relativePath);
-                layerBuilder.addEntryRecursive(file, pathInContainer/*, filePermissionsProvider*/);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                if (exc != null) {
-                    throw new IOException(exc);
-                }
-                return FileVisitResult.TERMINATE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                if (exc != null) {
-                    throw new IOException(exc);
-                }
-                return FileVisitResult.CONTINUE;
-            }
-        });
-
+        }
         containerBuilder.addFileEntriesLayer(layerBuilder.build());
     }
 
