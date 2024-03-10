@@ -2,6 +2,7 @@ package io.fabric8.maven.docker.util;
 
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
 import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.ContainerBuildPlan;
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Port;
@@ -12,7 +13,6 @@ import io.fabric8.maven.docker.config.ImageConfiguration;
 import org.apache.maven.plugins.assembly.model.Assembly;
 import org.apache.maven.plugins.assembly.model.FileItem;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -53,21 +52,20 @@ class JibServiceUtilTest {
     }
 
     @Test
-    @Disabled("Cannot mock static methods, JibServiceUtil needs to be refactored as non-static and/or expose methods to spy on")
     void testContainerFromImageConfiguration() throws Exception {
         // Given
         ImageConfiguration imageConfiguration = getSampleImageConfiguration();
         // When
         JibContainerBuilder jcb = containerFromImageConfiguration(ImageFormat.Docker.name(), imageConfiguration, null);
-        JibContainerBuilder jibContainerBuilder= Mockito.spy(jcb);
+        ContainerBuildPlan buildPlan = jcb.toContainerBuildPlan();
         // Then
-        Mockito.verify(jibContainerBuilder).addLabel("foo", "bar");
-        Mockito.verify(jibContainerBuilder).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
-        Mockito.verify(jibContainerBuilder).setExposedPorts(new HashSet<>(Collections.singletonList(Port.tcp(8080))));
-        Mockito.verify(jibContainerBuilder).setUser("root");
-        Mockito.verify(jibContainerBuilder).setWorkingDirectory(AbsoluteUnixPath.get("/home/foo"));
-        Mockito.verify(jibContainerBuilder).setVolumes(new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))));
-        Mockito.verify(jibContainerBuilder).setFormat(ImageFormat.Docker);
+        Assertions.assertEquals(Collections.singletonMap("foo", "bar"), buildPlan.getLabels());
+        Assertions.assertEquals(Arrays.asList("java", "-jar", "foo.jar"), buildPlan.getEntrypoint());
+        Assertions.assertEquals(Collections.singleton(Port.tcp(8080)), buildPlan.getExposedPorts());
+        Assertions.assertEquals("root", buildPlan.getUser());
+        Assertions.assertEquals(AbsoluteUnixPath.get("/home/foo"), buildPlan.getWorkingDirectory());
+        Assertions.assertEquals(Collections.singleton(AbsoluteUnixPath.get("/mnt/volume1")), buildPlan.getVolumes());
+        Assertions.assertEquals(ImageFormat.Docker, buildPlan.getFormat());
     }
 
     @Test
