@@ -56,7 +56,7 @@ public class JibBuildService {
                     registryConfig, false, imageConfig);
             final JibContainerBuilder containerBuilder = containerFromImageConfiguration(jibImageFormat, imageConfig, pullRegistryCredential);
 
-            File dockerTarArchive = getAssemblyTarArchive(imageConfig, serviceHub, mojoParameters, log);
+            File dockerContextArchive = getAssemblyTarArchive(imageConfig, serviceHub, mojoParameters, log);
 
             for (AssemblyConfiguration assemblyConfiguration : imageConfig.getBuildConfiguration().getAllAssemblyConfigurations()) {
                 // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
@@ -73,9 +73,15 @@ public class JibBuildService {
                         containerBuilder, assemblyConfiguration.getName(), assemblyFiles.getAssemblyDirectory(), assemblyConfiguration.getTargetDir(), files);
             }
 
+            File dockerImageArchive = imageConfig.getBuildConfiguration().getDockerArchive();
+            if (dockerImageArchive == null) {
+                // Fallback to context archive for backwards compatibility.
+                dockerImageArchive = dockerContextArchive;
+            }
+
             JibServiceUtil.buildContainer(containerBuilder,
-                    TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
-            log.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
+                    TarImage.at(dockerImageArchive.toPath()).named(imageConfig.getName()), log);
+            log.info("%s successfully built", dockerImageArchive.getAbsolutePath());
         } catch (Exception ex) {
             throw new MojoExecutionException("Error when building JIB image", ex);
         }

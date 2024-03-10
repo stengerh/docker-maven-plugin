@@ -68,6 +68,33 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>com.github.ekryd.sortpom</groupId>
+        <artifactId>sortpom-maven-plugin</artifactId>
+        <configuration>
+          <!-- Build requires specific order of plugin executions within phase package. -->
+          <sortPlugins/>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>io.fabric8.maven.sample.springboot.layers.Application</mainClass>
+              <classpathPrefix>lib/</classpathPrefix>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring.version}</version>
+      </plugin>
+      <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>docker-maven-plugin</artifactId>
         <configuration>
@@ -77,6 +104,7 @@
               <name>${docker.user}/dmp-multi-assembly-jib</name>
               <build>
                 <from>fabric8/java-centos-openjdk8-jdk:1.5.6</from>
+                <dockerArchive>${project.build.directory}/dmp-multi-assembly-jib-${project.version}.tar</dockerArchive>
                 <assemblies>
                   <assembly>
                     <descriptorRef>dependencies</descriptorRef>
@@ -124,9 +152,6 @@
               <images>
                 <image>
                   <name>${docker.user}/dmp-multi-assembly-jib</name>
-                  <build>
-                    <dockerArchive>${project.build.directory}/docker/fabric8/dmp-multi-assembly-jib/tmp/docker-build.tar</dockerArchive>
-                  </build>
                 </image>
               </images>
             </configuration>
@@ -146,25 +171,6 @@
             <phase>post-integration-test</phase>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <mainClass>io.fabric8.maven.sample.springboot.layers.Application</mainClass>
-              <classpathPrefix>lib/</classpathPrefix>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${spring.version}</version>
       </plugin>
     </plugins>
   </build>
